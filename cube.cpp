@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cstring>
 #include <iostream>
+#include <memory>
 #include <stdexcept>
 
 Cube::Cube(const std::string& cube) 
@@ -10,7 +11,7 @@ Cube::Cube(const std::string& cube)
     if (validate_state(cube))
     {
         for (int i = 0; i < 54; ++i)
-            state[i] = cube[i];
+            (this->cube)[i] = cube[i];
     }
     else
     {
@@ -18,31 +19,15 @@ Cube::Cube(const std::string& cube)
     }
 }
 
-constexpr unsigned long long operator ""_w(unsigned long long n) {
-    return n;
+Cube::Cube(const Cube& other)
+{
+    std::memcpy(cube, other.cube, 54 * sizeof(char));
 }
 
-constexpr unsigned long long operator ""_g(unsigned long long n) {
-    return n + 9;
-}
 
-constexpr unsigned long long operator ""_o(unsigned long long n) {
-    return n + 18;
-}
 
-constexpr unsigned long long operator ""_r(unsigned long long n) {
-    return n + 27;
-}
+#pragma region CUBE_VALIDATION
 
-constexpr unsigned long long operator ""_y(unsigned long long n) {
-    return n + 36;
-}
-
-constexpr unsigned long long operator ""_b(unsigned long long n) {
-    return n + 45;
-}
-
-#pragma region CUBE_VALIDATOR
 
 
 inline bool opposites(char c1, char c2)
@@ -283,10 +268,15 @@ bool corner_parity(const std::string& cube)
 
         int third_corner = corners[second_corner];
 
+        while (third_corner == first_corner || third_corner == second_corner || corners[third_corner] == third_corner)
+            ++third_corner;
+
         int temp = corners[first_corner];
         corners[first_corner] = corners[third_corner];
         corners[third_corner] = corners[second_corner];
         corners[second_corner] = temp; 
+
+        solved_corners += (corners[first_corner] == first_corner) + (corners[second_corner] == second_corner) + (corners[third_corner] == third_corner);
     }
 
     return solved_corners != 8;
@@ -378,10 +368,15 @@ bool edge_parity(const std::string& cube)
 
         int third_edge = edges[second_edge];
 
+        while (third_edge == first_edge || third_edge == second_edge || third_edge == edges[third_edge])
+            ++third_edge;
+
         int temp = edges[first_edge];
         edges[first_edge] = edges[third_edge];
         edges[third_edge] = edges[second_edge];
-        edges[second_edge] = temp; 
+        edges[second_edge] = temp;
+
+        solved_edges += (edges[first_edge] == first_edge) + (edges[second_edge] == second_edge) + (edges[third_edge] == third_edge);
     }
 
     return solved_edges != 8;
@@ -438,17 +433,207 @@ bool Cube::validate_state(const std::string& cube)
 bool Cube::isSolved() const
 {
     for (int i = 0; i < 54; ++i)
-        if (state[i] != solved_cube[i])
+        if (cube[i] != solved_cube[i])
             return false;
 
     return true;
 }
 
-void Cube::move_indicies(std::array<int, 8> indicies, int n)
-{
 
+#pragma region MOVE_COLORS
+
+void Cube::cycle_four(std::array<int, 4> indicies, int n)
+{
+    switch (n)
+    {
+    case 1:
+    {
+        int temp = cube[indicies[0]];
+        cube[indicies[0]] = cube[indicies[3]];
+        cube[indicies[3]] = cube[indicies[2]];
+        cube[indicies[2]] = cube[indicies[1]];
+        cube[indicies[1]] = temp;
+    }
+        break;
+    case 2:
+    {
+        int temp = cube[indicies[0]];
+        cube[indicies[0]] = cube[indicies[2]];
+        cube[indicies[2]] = temp;
+        temp = cube[indicies[1]];
+        cube[indicies[1]] = cube[indicies[3]];
+        cube[indicies[3]] = temp;
+    }
+        break;
+    case -1:
+    {
+        int temp = cube[indicies[0]];
+        cube[indicies[0]] = cube[indicies[1]];
+        cube[indicies[1]] = cube[indicies[2]];
+        cube[indicies[2]] = cube[indicies[3]];
+        cube[indicies[3]] = temp;
+    }
+        break;
+    default:
+        throw std::invalid_argument("n must be -1, 1, or 2");
+    }
 }
 
+void Cube::r(int n)
+{
+    cycle_four(r_close_edges, n);
+    cycle_four(r_far_edges, n);
+    cycle_four(r_close_corners, n);
+    cycle_four(r_far_corners_top, n);
+    cycle_four(r_far_corners_bottom, n);
+}
+
+
+Cube* Cube::rC(int n)
+{
+    Cube* new_cube = new Cube(*this);
+    new_cube->cycle_four(r_close_edges, n);
+    new_cube->cycle_four(r_far_edges, n);
+    new_cube->cycle_four(r_close_corners, n);
+    new_cube->cycle_four(r_far_corners_top, n);
+    new_cube->cycle_four(r_far_corners_bottom, n);
+    return new_cube;
+}
+
+void Cube::l(int n)
+{
+    cycle_four(l_close_edges, n);
+    cycle_four(l_far_edges, n);
+    cycle_four(l_close_corners, n);
+    cycle_four(l_far_corners_top, n);
+    cycle_four(l_far_corners_bottom, n);
+}
+
+
+Cube* Cube::lC(int n)
+{
+    Cube* new_cube = new Cube(*this);
+    new_cube->cycle_four(l_close_edges, n);
+    new_cube->cycle_four(l_far_edges, n);
+    new_cube->cycle_four(l_close_corners, n);
+    new_cube->cycle_four(l_far_corners_top, n);
+    new_cube->cycle_four(l_far_corners_bottom, n);
+    return new_cube;
+}
+
+
+void Cube::u(int n)
+{
+    cycle_four(u_close_edges, n);
+    cycle_four(u_far_edges, n);
+    cycle_four(u_close_corners, n);
+    cycle_four(u_far_corners_left, n);
+    cycle_four(u_far_corners_right, n);
+}
+
+
+Cube* Cube::uC(int n)
+{
+    Cube* new_cube = new Cube(*this);
+    new_cube->cycle_four(u_close_edges, n);
+    new_cube->cycle_four(u_far_edges, n);
+    new_cube->cycle_four(u_close_corners, n);
+    new_cube->cycle_four(u_far_corners_left, n);
+    new_cube->cycle_four(u_far_corners_right, n);
+    return new_cube;
+}
+
+
+void Cube::d(int n)
+{
+    cycle_four(d_close_edges, n);
+    cycle_four(d_far_edges, n);
+    cycle_four(d_close_corners, n);
+    cycle_four(d_far_corners_left, n);
+    cycle_four(d_far_corners_right, n);
+}
+
+
+Cube* Cube::dC(int n)
+{
+    Cube* new_cube = new Cube(*this);
+    new_cube->cycle_four(d_close_edges, n);
+    new_cube->cycle_four(d_far_edges, n);
+    new_cube->cycle_four(d_close_corners, n);
+    new_cube->cycle_four(d_far_corners_left, n);
+    new_cube->cycle_four(d_far_corners_right, n);
+    return new_cube;
+}
+
+
+void Cube::f(int n)
+{
+    cycle_four(f_close_edges, n);
+    cycle_four(f_far_edges, n);
+    cycle_four(f_close_corners, n);
+    cycle_four(f_far_corners_left, n);
+    cycle_four(f_far_corners_right, n);
+}
+
+Cube* Cube::fC(int n)
+{
+    Cube* new_cube = new Cube(*this);
+    new_cube->cycle_four(f_close_edges, n);
+    new_cube->cycle_four(f_far_edges, n);
+    new_cube->cycle_four(f_close_corners, n);
+    new_cube->cycle_four(f_far_corners_left, n);
+    new_cube->cycle_four(f_far_corners_right, n);
+    return new_cube;
+}
+
+void Cube::b(int n)
+{
+    cycle_four(b_close_edges, n);
+    cycle_four(b_far_edges, n);
+    cycle_four(b_close_corners, n);
+    cycle_four(b_far_corners_left, n);
+    cycle_four(b_far_corners_right, n);
+}
+
+Cube* Cube::bC(int n)
+{
+    Cube* new_cube = new Cube(*this);
+    new_cube->cycle_four(b_close_edges, n);
+    new_cube->cycle_four(b_far_edges, n);
+    new_cube->cycle_four(b_close_corners, n);
+    new_cube->cycle_four(b_far_corners_left, n);
+    new_cube->cycle_four(b_far_corners_right, n);
+    return new_cube;
+}
+
+
+#pragma endregion
+
+
+void Cube::display() const
+{
+    for (int i = 0; i < 9; i += 3)
+        std::cout << "        " << cube[i] << ' '
+                                << cube[i + 1] << ' ' 
+                                << cube[i + 2] << '\n';
+
+    std::cout << '\n';
+    for (int i = 0; i < 9; i += 3)
+    {
+    std::cout << cube[0_o + i] << ' ' << cube[1_o + i] << ' ' << cube[2_o + i] << "   "
+              << cube[0_g + i] << ' ' << cube[1_g + i] << ' ' << cube[2_g + i] << "   "
+              << cube[0_r + i] << ' ' << cube[1_r + i] << ' ' << cube[2_r + i] << "   "
+              << cube[0_b + i] << ' ' << cube[1_b + i] << ' ' << cube[2_b + i] << '\n';
+
+    }
+    
+    std::cout << '\n';
+    for (int i = 0_y; i < 0_y + 9; i += 3)
+        std::cout << "        " << cube[i] << ' '
+                                << cube[i + 1] << ' '
+                                << cube[i + 2] << '\n';
+
+}
 
 // void Cube::r(int n)
 // {

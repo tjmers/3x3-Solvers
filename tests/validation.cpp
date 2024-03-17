@@ -1,4 +1,4 @@
-// compilation command: g++ input_handler.cpp cube.cpp tests\validation_test.cpp -o tests\validation_test.exe -O3 -std=c++20
+// compilation command: g++ input_handler.cpp cube.cpp tests\validation.cpp -o tests\validation.exe -O3 -std=c++20
 
 #include <iostream>
 
@@ -10,7 +10,7 @@ int main(int argc, char** argv)
 
     if (argc != 2)
     {
-        std::cout << "Command Usage: ./validation_test <filepath>\n";
+        std::cout << "Command Usage: ./validation <filepath>\n";
         return 1;
     }
 
