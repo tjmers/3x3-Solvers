@@ -45,6 +45,7 @@ std::string get_solution(Cube* starting_position)
 
         std::string next = current.second;
         next.push_back('R');
+        next.push_back(' ');
         bfs.push({ current.first->rC(1), next });
 
         next = current.second;
@@ -59,6 +60,7 @@ std::string get_solution(Cube* starting_position)
 
         next = current.second;
         next.push_back('L');
+        next.push_back(' ');
         bfs.push({ current.first->lC(1), next });
 
         next = current.second;
@@ -73,6 +75,7 @@ std::string get_solution(Cube* starting_position)
         
         next = current.second;
         next.push_back('U');
+        next.push_back(' ');
         bfs.push({ current.first->uC(1), next });
 
         next = current.second;
@@ -87,6 +90,7 @@ std::string get_solution(Cube* starting_position)
 
         next = current.second;
         next.push_back('D');
+        next.push_back(' ');
         bfs.push({ current.first->dC(1), next });
 
         next = current.second;
@@ -101,6 +105,7 @@ std::string get_solution(Cube* starting_position)
 
         next = current.second;
         next.push_back('F');
+        next.push_back(' ');
         bfs.push({ current.first->fC(1), next });
 
         next = current.second;
@@ -115,6 +120,7 @@ std::string get_solution(Cube* starting_position)
 
         next = current.second;
         next.push_back('B');
+        next.push_back(' ');
         bfs.push({ current.first->bC(1), next });
 
         next = current.second;
