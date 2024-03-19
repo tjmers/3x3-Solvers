@@ -73,12 +73,14 @@ bool validate_edges(const std::string& cube)
 {
 
     int nGoodEdges = 0;
-    int positions[8] = { 1_w, 3_w, 5_w, 7_w, 1_y, 3_y, 5_y, 7_y };
-    int off_positions[8] = { 1_b, 1_o, 1_r, 1_g, 7_g, 7_o, 7_r, 7_b };
+    int positions[12] = { 1_w, 3_w, 5_w, 7_w, 1_y, 3_y, 5_y, 7_y, 3_g, 5_g, 3_b, 5_b };
+    int off_positions[12] = { 1_b, 1_o, 1_r, 1_g, 7_g, 7_o, 7_r, 7_b, 5_o, 3_r, 5_r, 3_o };
 
-    for (int i : positions)
+    for (int i = 0; i < 12; ++i)
     {
-        if (cube[i] == 'W' || cube[i] == 'Y')
+        if (cube[positions[i]] == 'W' || cube[positions[i]] == 'Y' ||
+                (cube[off_positions[i]] != 'W' && cube[off_positions[i]] != 'Y' &&
+                (cube[positions[i] == 'G' || cube[positions[i] == 'B']])))
             ++nGoodEdges;
     }
 
@@ -308,6 +310,18 @@ int get_edge_index(char c1, char c2)
     if ((c1 == 'Y' || c2 == 'Y') && (c1 == 'B' || c2 == 'B'))
         return 7;
 
+    if ((c1 == 'G' || c2 == 'G') && (c1 == 'O' || c2 == 'O'))
+        return 8;
+
+    if ((c1 == 'G' || c2 == 'G') && (c1 == 'R' || c2 == 'R'))
+        return 9;
+    
+    if ((c1 == 'B' || c2 == 'B') && (c1 == 'R' || c2 == 'R'))
+        return 10;
+
+    if ((c1 == 'B' || c2 == 'B') && (c1 == 'O' || c2 == 'O'))
+        return 11;
+
     return -1;
 }
 
@@ -331,6 +345,14 @@ std::pair<char, char> get_edge_colors(const std::string& cube, int i)
         return { cube[5_y], cube[7_r] };
     case 7:
         return { cube[7_y], cube[7_b] };
+    case 8:
+        return { cube[3_g], cube[5_o] };
+    case 9:
+        return { cube[5_g], cube[3_r] };
+    case 10:
+        return { cube[3_b], cube[5_r] };
+    case 11:
+        return { cube[5_b], cube[3_o] };
     default:
         throw std::invalid_argument("Invalid edge index to be converted to a color");
     }
@@ -339,9 +361,9 @@ std::pair<char, char> get_edge_colors(const std::string& cube, int i)
 bool edge_parity(const std::string& cube)
 {
 
-    int edges[8];
+    int edges[12];
 
-    for (int i = 0; i < 8; ++i)
+    for (int i = 0; i < 12; ++i)
     {
         std::pair<char, char> current_edge = get_edge_colors(cube, i);
         edges[i] = get_edge_index(current_edge.first, current_edge.second);
@@ -350,7 +372,7 @@ bool edge_parity(const std::string& cube)
 
     int solved_edges = 0;
 
-    for (int i = 0; i < 8; ++i)
+    for (int i = 0; i < 12; ++i)
     {
         if (edges[i] == i)
             ++solved_edges;
@@ -358,7 +380,7 @@ bool edge_parity(const std::string& cube)
 
     // std::cout << "Solved Edges: " << solved_edges << '\n';
 
-    while (solved_edges < 6)
+    while (solved_edges < 10)
     {
         int first_edge = 0;
         while (edges[first_edge] == first_edge)
@@ -379,7 +401,7 @@ bool edge_parity(const std::string& cube)
         solved_edges += (edges[first_edge] == first_edge) + (edges[second_edge] == second_edge) + (edges[third_edge] == third_edge);
     }
 
-    return solved_edges != 8;
+    return solved_edges != 12;
 
 
 }
