@@ -19,6 +19,8 @@ int main(int argc, char** argv)
 
     Cube* c1 = new Cube(input_handler::get_cube_from_file(argv[1]));
 
+    // c1->display();
+
     std::string solution = get_solution(c1);
 
     std::cout << "Solution: " << solution << '\n';
@@ -36,6 +38,8 @@ std::string get_solution(Cube* starting_position)
     std::queue<std::pair<Cube*, std::string>> bfs;
     bfs.push({ starting_position, "" });
 
+    int length = 0;
+
     while (true)
     {
         std::pair<Cube*, std::string> current = bfs.front();
@@ -44,6 +48,12 @@ std::string get_solution(Cube* starting_position)
 
 
         std::string next = current.second;
+
+        if (next.size() > length)
+        {
+            length = next.size();
+            std::cout << "Depth: " << length / 2 << '\n';
+        }
         next.push_back('R');
         next.push_back(' ');
         bfs.push({ current.first->rC(1), next });
