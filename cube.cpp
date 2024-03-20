@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cstring>
+#include <fstream>
 #include <iostream>
 #include <memory>
 #include <stdexcept>
@@ -657,10 +658,13 @@ void Cube::display() const
 
 }
 
-// void Cube::r(int n)
-// {
-//     // move edges
-//     std::array<int, 8> indicies = { 27, 28, 29, 30, 32, 33, 34, 35 };
+void Cube::write(std::ofstream& ofstream)
+{
+    ofstream << cube;
+}
 
-//     move_indicies(indicies, n);
-// }
+
+int Cube::unique_index() const
+{
+    return 0;
+}

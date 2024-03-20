@@ -11,6 +11,8 @@ std::string get_cube_from_file(const std::string& file_path)
         std::string retval;
         std::getline(file, retval);
 
+        file.close();
+
         return retval;
    }
 

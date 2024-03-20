@@ -59,6 +59,9 @@ public:
     Cube* dC(int n);
 
     void display() const;
+    void write(std::ofstream& ofstream);
+
+    int unique_index() const;
 
 private:
 
