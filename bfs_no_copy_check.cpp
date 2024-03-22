@@ -1,4 +1,6 @@
 // Compilation Command: g++ bfs_no_copy_check.cpp cube.cpp input_handler.cpp -o bfs_no_copy_check.exe -O3 -std=c++20
+// Note: this will no longer work due to changes in the Cube::is_solved() method
+// Cannot come up with a solution for something that is greater than 5 moves - takes too long
 
 #include <iostream>
 #include <queue>
@@ -43,7 +45,7 @@ std::string get_solution(Cube* starting_position)
     while (true)
     {
         std::pair<Cube*, std::string> current = bfs.front();
-        if (current.first->isSolved())
+        if (current.first->is_solved())
             return current.second;
 
 

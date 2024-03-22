@@ -42,7 +42,7 @@ public:
     Cube(const std::string& cube);
     Cube(const Cube& other);
 
-    bool isSolved() const;
+    bool is_solved(long long edges, long long corners) const;
 
     void r(int n);
     void l(int n);
@@ -61,21 +61,12 @@ public:
     void display() const;
     void write(std::ofstream& ofstream);
 
-    int unique_index() const;
+    long long edge_index() const;
+    long long corner_index() const;
 
 private:
 
     char cube[54];
-    static constexpr char solved_cube[54] =
-    {
-        'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W',
-        'G', 'G', 'G', 'G', 'G', 'G', 'G', 'G', 'G',
-        'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O',
-        'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R',
-        'Y', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y',
-        'B', 'B', 'B', 'B', 'B', 'B', 'B', 'B', 'B',
-
-    };
     
     static bool validate_state(const std::string& cube);
 

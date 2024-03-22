@@ -70,18 +70,24 @@ inline bool are_unique_edges(char c1, char c2, char c3, char c4)
           (c2 == c3 || c2 == c4));
 }
 
+constexpr int edge_positions[12] = { 1_w, 3_w, 5_w, 7_w, 1_y, 3_y, 5_y, 7_y, 3_g, 5_g, 3_b, 5_b };
+constexpr int edge_off_positions[12] = { 1_b, 1_o, 1_r, 1_g, 7_g, 7_o, 7_r, 7_b, 5_o, 3_r, 5_r, 3_o };
+
+inline bool good_edges(char c1, char c2)
+{
+    return c1 == 'W' || c1 == 'Y' || 
+          (c2 != 'W' && c2 != 'Y' &&
+          (c1 == 'G' || c1 == 'B'));
+}
+
 bool validate_edges(const std::string& cube)
 {
 
     int nGoodEdges = 0;
-    int positions[12] = { 1_w, 3_w, 5_w, 7_w, 1_y, 3_y, 5_y, 7_y, 3_g, 5_g, 3_b, 5_b };
-    int off_positions[12] = { 1_b, 1_o, 1_r, 1_g, 7_g, 7_o, 7_r, 7_b, 5_o, 3_r, 5_r, 3_o };
 
     for (int i = 0; i < 12; ++i)
     {
-        if (cube[positions[i]] == 'W' || cube[positions[i]] == 'Y' ||
-                (cube[off_positions[i]] != 'W' && cube[off_positions[i]] != 'Y' &&
-                (cube[positions[i] == 'G' || cube[positions[i] == 'B']])))
+        if (good_edges(cube[edge_positions[i]], cube[edge_off_positions[i]]))
             ++nGoodEdges;
     }
 
@@ -95,7 +101,7 @@ bool validate_edges(const std::string& cube)
     for (int i = 0; i < 8; ++i)
     {
         // std::cout << cube[positions[i]] << cube[off_positions[i]] << '\n';
-        edges.push_back({ cube[positions[i]], cube[off_positions[i]] });
+        edges.push_back({ cube[edge_positions[i]], cube[edge_off_positions[i]] });
     }
 
     while (edges.size() > 1)
@@ -117,14 +123,16 @@ bool validate_edges(const std::string& cube)
 
     return true;
 }
+constexpr int corner_indicies[] = { 0_w, 0_o, 2_b, 2_w, 0_b, 2_r,
+                                    6_w, 0_g, 2_o, 8_w, 0_r, 2_g,
+                                    0_y, 8_o, 6_g, 2_y, 8_g, 6_r,
+                                    6_y, 8_b, 6_o, 8_y, 8_r, 6_b };
+
+
 
 bool validate_corners(const std::string& cube)
 {
 
-    constexpr int corner_indicies[] = { 0_w, 0_o, 2_b, 2_w, 0_b, 2_r,
-                                        6_w, 0_g, 2_o, 8_w, 0_r, 2_g,
-                                        0_y, 8_o, 6_g, 2_y, 8_g, 6_r,
-                                        6_y, 8_b, 6_o, 8_y, 8_r, 6_b };
 
     int total_corner_orientations = 0;
 
@@ -214,6 +222,30 @@ int get_corner_index(char c1, char c2, char c3)
     return -1;
 }
 
+std::tuple<char, char, char> get_corner_colors(int* cube, int i)
+{
+    switch (i)
+    {
+    case 0:
+        return { cube[0_w], cube[0_o], cube[2_b] };
+    case 1:
+        return { cube[2_w], cube[2_r], cube[0_b] };
+    case 2:
+        return { cube[6_w], cube[2_o], cube[0_g] };
+    case 3:
+        return { cube[8_w], cube[0_r], cube[2_g] };
+    case 4:
+        return { cube[0_y], cube[6_g], cube[8_o] };
+    case 5:
+        return { cube[2_y], cube[8_g], cube[6_r] };
+    case 6:
+        return { cube[6_y], cube[8_b], cube[6_o] };
+    case 7:
+        return { cube[8_y], cube[6_b], cube[8_r] };
+    default:
+        throw std::invalid_argument("Invalid corner index");
+    }
+}
 
 std::tuple<char, char, char> get_corner_colors(const std::string& cube, int i)
 {
@@ -324,6 +356,40 @@ int get_edge_index(char c1, char c2)
         return 11;
 
     return -1;
+}
+
+
+std::pair<char, char> get_edge_colors(int* cube, int i)
+{
+    switch (i)
+    {
+    case 0:
+        return { cube[1_w], cube[1_b] };
+    case 1:
+        return { cube[3_w], cube[1_o] };
+    case 2:
+        return { cube[5_w], cube[1_r] };
+    case 3:
+        return { cube[7_w], cube[1_g] };
+    case 4:
+        return { cube[1_y], cube[7_g] };
+    case 5:
+        return { cube[3_y], cube[7_o] };
+    case 6:
+        return { cube[5_y], cube[7_r] };
+    case 7:
+        return { cube[7_y], cube[7_b] };
+    case 8:
+        return { cube[3_g], cube[5_o] };
+    case 9:
+        return { cube[5_g], cube[3_r] };
+    case 10:
+        return { cube[3_b], cube[5_r] };
+    case 11:
+        return { cube[5_b], cube[3_o] };
+    default:
+        throw std::invalid_argument("Invalid edge index to be converted to a color");
+    }
 }
 
 std::pair<char, char> get_edge_colors(const std::string& cube, int i)
@@ -453,13 +519,9 @@ bool Cube::validate_state(const std::string& cube)
 
 #pragma endregion
 
-bool Cube::isSolved() const
+bool Cube::is_solved(long long edges, long long corners) const
 {
-    for (int i = 0; i < 54; ++i)
-        if (cube[i] != solved_cube[i])
-            return false;
-
-    return true;
+    return edges == -1418986820ll && corners == 1754760ll; // values from indicies.cpp
 }
 
 
@@ -664,7 +726,37 @@ void Cube::write(std::ofstream& ofstream)
 }
 
 
-int Cube::unique_index() const
+long long Cube::edge_index() const
 {
-    return 0;
+    long long ret_val = 0;
+
+    for (int i = 0; i < 11; ++i)
+    {
+        auto colors = get_edge_colors(cube, i);
+        ret_val |= get_edge_index(colors.first, colors.second) << (i * 5);
+        ret_val |= good_edges(colors.first, colors.second) << (i * 5 + 4);
+    }
+
+    return ret_val;
+}
+
+long long Cube::corner_index() const
+{
+    long long ret_val = 0;
+
+    for (int i = 0; i < 7; ++i)
+    {
+        auto colors = get_corner_colors(cube, i);
+        ret_val |= get_corner_index(std::get<0>(colors), std::get<1>(colors), std::get<2>(colors)) << (i * 3);
+    }
+    int corner_number = 0;
+    for (int i = 0; i < 24; ++i)
+    {
+        int cur_color = cube[corner_indicies[i]];
+        if (cur_color == 'Y' || cur_color == 'W')
+            ret_val |= (i % 3) << (21 + corner_number * 2);
+    }
+
+
+    return ret_val;
 }
